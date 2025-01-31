@@ -1,3 +1,47 @@
-baseURL = 'https://example.org/'
+baseURL = 'https://pehtheme-hugo.netlify.app/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = "Jacob's Blog"
+theme = 'pehtheme-simple-hugo'
+
+paginate = 6
+summaryLength = 20
+
+[params]
+# Meta description, not exceeding 160 characters, used for the meta description within the HTML head
+description = "Follow Jacob's blog to explore exciting technology and learn how things are built from the ground up."
+mainSections = 'posts'
+welcomeMessage = "Hello and welcome to my blog! My name is Jacob, and I'm passionate about exploring all kinds of technology. In this blog, I dive into the projects and technologies that excite me, documenting my journey along the way. Join me as we learn and explore together!"
+
+[params.author]
+name = 'Jacob'
+bio = 'I am a software engineer that loves exploring tech and figuring out how things work. I am passionate about learning and hope to share some of that passion with you!'
+avatar = '/images/avatar.jpg'
+github = 'https://www.github.com/jacob-horton/'
+linkedin = 'https://www.linkedin.com/in/jacob-a-horton/'
+
+[menu] # Menu management
+
+[[menu.main]]
+name = 'Home'
+pageRef = '/'
+weight = 10
+
+[[menu.main]]
+name = 'About'
+pageRef = '/about'
+weight = 15
+
+[[menu.main]]
+name = 'Tags'
+pageRef = '/tags'
+weight = 20
+
+[module]
+
+[module.hugoVersion]
+extended = false
+min = "0.116.0"
+
+[module.mounts] # Directing the static folder to assets.
+source = 'assets'
+target = 'static'
