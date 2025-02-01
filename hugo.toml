@@ -1,5 +1,4 @@
-# TODO: update
-baseURL = 'https://pehtheme-hugo.netlify.app/'
+baseURL = 'https://jacobhorton.dev/'
 languageCode = 'en-us'
 title = "Jacob's Blog"
 theme = 'pehtheme-simple-hugo'
