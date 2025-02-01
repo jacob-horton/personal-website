@@ -278,10 +278,10 @@ for header in &headers {
 Most of the time in an HTTP server, we want to call different functions based on the HTTP method and path (an **endpoint**). A naive approach would be to use an `if` statement per endpoint, but this does not scale well. Instead, we can create a router that stores all the possible endpoints and the function they map to. Then we can loop through all the routes to check for a match, and return that route's handler method if there is a match.
 
 ```rust
-// Utility type aliases
+// Utility type alias
 pub type Handler = fn(req: Request) -> Response;
 
-// Utility struct to store information about a route and a method to handle the route
+// Utility struct to store info about a route and a function to handle the route
 #[derive(Clone, Debug)]
 struct Route {
     method: Method,
@@ -301,31 +301,51 @@ impl Router {
         Self { routes: Vec::new() }
     }
 
-    // Method to add a route given a method, path, and a function to handle the route
+    // Add a route given a method, path, and a function to handle the route
     pub fn add(&mut self, method: Method, path: &str, handler: Handler) {
         self.routes.push(Route {
-            path,
+            path: path.to_string(),
             method,
             handler,
         });
     }
 
-    // A method to pick the correct route handler based on the provided method and path
-    pub fn recognise(&self, method: &Method, path: &str) -> Option<RouteMatch> {
-        // Loop through all routes
+    // Pick the correct route handler and call it
+    // If no route was found, it will return None
+    pub fn handle(&self, req: Request) -> Option<Response> {
         let handler = self.routes.iter().find_map(|r| {
-            // Return early if the method or path doesn't match
-            if r.method != *method || r.path != path {
+            if r.method != req.method || r.path != req.path {
                 return None;
             }
 
-            // We have a match - return the handler
-            return r.handler;
+            return Some(r.handler);
         });
 
-        handler
+        handler.map(|handler| handler(req))
     }
 }
+```
+
+To use this, we first set up the router:
+
+```rust
+let mut router = Router::new();
+router.add(Method::Post, "/echo", |req| Response {
+    version: "HTTP/1.1".to_string(),
+    status_code: Status::Ok,
+    headers: Vec::new(),
+    body: req.body,
+});
+```
+
+And then when we have an incoming connection, we can handle it like so:
+```rust
+let req = Request::from_reader(&mut stream);
+let resp = router
+    .handle(req)
+    .unwrap_or(Response::new(Status::NotFound));
+
+stream.write_all(resp.to_string().as_bytes()).unwrap();
 ```
 
 > The code in my project on GitHub is more complicated, but still follows the same principle. I have glob and parameter matching to make pulling variables out of the path easier. I also allow for a global state of type `T` which is passed to each handler.
