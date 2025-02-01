@@ -54,11 +54,13 @@ jobs:
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
-          TZ: America/Los_Angeles
+          TZ: Europe/London
         run: |
           hugo \
             --gc \
             --minify
+      - name: Build Pagefind index
+        run: npx -y pagefind --site public
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
