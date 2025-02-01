@@ -12,6 +12,16 @@ module.exports = {
           "50%": { transform: "rotate(8deg)" },
         },
       },
+
+      // Get rid of quotation marks from blockquotes
+      typography: {
+        DEFAULT: {
+          css: {
+            "blockquote p:first-of-type::before": false,
+            "blockquote p:first-of-type::after": false,
+          },
+        },
+      },
     },
   },
   plugins: [require("@tailwindcss/typography")],

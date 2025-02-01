@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	blockquote {
+		/* background-color: blue; */
+		@apply bg-gray-100 border-l-4 border-gray-300 !not-italic before:content-['Note:'] before:font-bold py-3 px-4 rounded-md;
+
+		p {
+			@apply !my-0 !py-0;
+		}
+	}
+}
+
 @layer components {
 
 	.insert-link {
