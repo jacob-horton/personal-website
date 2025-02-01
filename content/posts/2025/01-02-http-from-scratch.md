@@ -18,7 +18,7 @@ draft: false
 
 # Introduction
 
-<a class="p-0! m-0! flex h-min items-center space-x-3" href="https://github.com/jacob-horton/http-from-scratch" target="_blank" rel="noopener">
+<a class="flex h-min items-center space-x-3" href="https://github.com/jacob-horton/http-from-scratch" target="_blank" rel="noopener">
     <img class="!my-0 w-8 h-8" src="/icons/github.svg" />
     <p class="!my-0">Code</p>
 </a>
@@ -37,7 +37,7 @@ First, let's have a look at the HTTP protocol. HTTP is a messaging system - a cl
 
 Requests and responses have a very similar format, which is as follows:
 
-<div class="flex justify-evenly w-full">
+<div class="flex justify-evenly w-full space-x-2">
     <div>
         <p class="my-2 font-bold">Request</p>
         <img class="my-0" src="/images/http-from-scratch/http-request-layout.png" />
