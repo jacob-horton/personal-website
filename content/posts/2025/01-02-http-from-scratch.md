@@ -40,11 +40,11 @@ Requests and responses have a very similar format, which is as follows:
 <div class="flex justify-evenly w-full space-x-2">
     <div>
         <p class="my-2 font-bold">Request</p>
-        <img class="my-0" src="/images/http-from-scratch/http-request-layout.png" />
+        <img class="my-0" src="/images/http-from-scratch/http-request-layout.avif" />
     </div>
     <div>
         <p class="my-2 font-bold">Response</p>
-        <img class="my-0" src="/images/http-from-scratch/http-response-layout.png"/>
+        <img class="my-0" src="/images/http-from-scratch/http-response-layout.avif"/>
     </div>
 </div>
 

@@ -15,7 +15,7 @@ welcomeMessage = "Hello and welcome to my blog! My name is Jacob, and I'm passio
 [params.author]
 name = 'Jacob'
 bio = 'I am a software engineer that loves exploring tech and figuring out how things work. I am passionate about learning and hope to share some of that passion with you!'
-avatar = '/images/avatar.jpg'
+avatar = '/images/avatar.webp'
 github = 'https://www.github.com/jacob-horton/'
 linkedin = 'https://www.linkedin.com/in/jacob-a-horton/'
 
