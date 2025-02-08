@@ -1,6 +1,6 @@
 ---
 title: "Handrolled Authentication Service"
-date: 2025-02-04
+date: 2025-02-08
 slug: /handrolled-auth/
 description: An exploration into handrolling my own authentication system, including session management
 image: /images/handrolled-auth/thumbnail.webp
