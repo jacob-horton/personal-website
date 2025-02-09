@@ -55,9 +55,37 @@ The typical flow of an authentication system is as follows:
 # Initial Authentication
 
 The focus of this project was not on validating usernames and passwords, but here is a brief overview of my setup:
-- I have a list of user records on the server
-- Each record contains the user's details including their username and their (salted and hashed) password
-- When the client sends the username and password, the user with the provided username is found, and the password is checked
+
+```rust
+// User data
+#[derive(Debug, Clone)]
+pub struct User {
+    pub id: String,
+    pub username: String,
+
+    // Salted and hashed password
+    pub password_hash: String,
+}
+
+impl User {
+    // Utility function to check password
+    pub fn check_password(&self, password: &str) -> bool {
+        // Parse the password hash raw string
+        let parsed_hash = PasswordHash::new(&self.password_hash).unwrap();
+
+        // Use argon2 algorithm (from `argon2` crate) to verify salted & hashed password
+        return Argon2::default()
+            .verify_password(password.as_ref(), &parsed_hash)
+            .is_ok();
+    }
+}
+
+// Store a list of users in memory
+pub struct Database {
+    users: RwLock<Vec<User>>,
+}
+
+```
 
 > For more information on securely storing passwords, including salting and hashing, [see here](https://www.vaadata.com/blog/how-to-securely-store-passwords-in-database/).
 
@@ -74,10 +102,47 @@ On each request, the server will check if the session ID (from the cookie) exist
 
 While this is really simple and has a lot of flexibility, its stateful nature causes scalability issues. Before any request can be processed, there is the latency of reaching out to a database. It is also harder to distribute this system as the session database will need to be kept in sync across the distributed system.
 
+```rust
+// TODO:
+```
+
 
 ## JWTs
 
 JWTs are also tokens that are provided to the client to store and use in future requests. However, they solve the problem of sessions by being stateless - the validity of a JWT can be checked without having to do a database check. The JWT does this by storing "claims" - a set of requirements the token must pass for it to be valid. There are several common claims, but they typically include at least an expiration time, who issued the token, and the subject e.g. the user ID. All of this is signed by the server to ensure that the token must have come from a trusted source.
+
+Here's how I make the tokens in Rust using the `jsonwebtoken` crate:
+
+```rust
+// Struct to store the claims of the JWT
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct AccessClaims {
+    sub: String,
+    exp: usize,
+    iss: String,
+}
+
+// Set claims
+let access_claims = AccessClaims {
+    // User ID
+    sub: id.to_string(),
+    // Expiration in 1 day
+    exp: (SystemTime::now() + Duration::from_secs(24 * 60 * 60))
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as usize,
+    // Issuer - a name to identify the api that generated the token
+    iss: "handrolled-auth-api".to_string(),
+};
+
+// Encode token into a string
+let access_token = encode(
+    &jsonwebtoken::Header::default(),
+    &access_claims,
+    // Use a string as a key for the signing. You should use a key a lot stronger than this!
+    &EncodingKey::from_secret("secret".as_ref()),
+).unwrap();
+```
 
 > More information:
 >
@@ -86,6 +151,34 @@ JWTs are also tokens that are provided to the client to store and use in future 
 
 
 To check that the JWT is valid, the server needs to check the signature, and then each of the claims. If everything passes, we know that the user has a valid session. The key is that these claims do not require database lookups, allowing them to be stateless.
+
+To do this in my server, I use the following code:
+
+```rust
+// Read the token from the request cookies
+let access_token = request.get_cookie("access_token").unwrap();
+
+// Set up validation requirements (here, it's just the issuer)
+let mut validation = Validation::default();
+validation.set_issuer(&["handrolled-auth-api"]);
+
+// Decode the token
+let token = decode::<AccessClaims>(
+    &access_token,
+    &DecodingKey::from_secret("secret".as_ref()),
+    &validation,
+);
+
+match token {
+    Ok(token) => {
+        // Handle valid token here
+        println!("{:?}", token.claims); (e.g. return 401)
+    },
+    Err(e) => {
+        // Handle invalid token here (e.g. return 401)
+    },
+}
+```
 
 > JWTs can be decoded by anyone, so should not include any secret data. The signature on the JWT only ensures that a trusted source has created it, and it has not been tampered with (e.g. no one has changed the user ID or expiration date).
 
@@ -100,9 +193,82 @@ Instead, we can make the expiry time sooner, say 5 minutes. Therefore, after 5 m
 
 Refresh tokens are a long-living (e.g. 1 month) JWT that allows the user to request a new access token. We create this token at the same time as the original token, which we will now call the **access token**. When the access token expires, the client can use the refresh token to get a new access token. At this point, the server can do any extra checks or permission changes (checking the database if needed) before returning a new access token or refusing to do so. This has the benefit of keeping the access tokens stateless, and only requiring database checks a maximum of every 5 minutes.
 
+The refresh token generation is exactly the same as the access token. We just create the extra token, and add another `Set-Cookie` header. Then, if we get an error while reading/validating the access token, we can move on to checking the refresh token. If successful, we create a new access token and return it to the client:
+
+```rust
+match access_token {
+    Ok(access_token) => {
+        // Same as before
+    },
+    // Access token was invalid or missing - check for refresh token
+    Err(e) => {
+        let refresh_token = req.get_cookie("refresh_token").unwrap();
+
+        let claims = decode::<RefreshClaims>(
+            &refresh_token,
+            &DecodingKey::from_secret("secret".as_ref()),
+            &validation,
+        )
+        .unwrap()
+        .claims;
+
+        // Find user in the database (by the ID in the token) to make sure they still exist
+        let user = db.get_user_by_id(&claims.sub).expect("User not found");
+
+        // Here we can do any extra checks we want to
+
+        // Generate a new access token
+        let token = generate_access_token(&user.id).unwrap();
+
+        // Return new token with `Set-Cookie` header
+    },
+}
+```
+
 Now, how do we invalidate sessions? The way I chose to do this is to store a version in a claim on the refresh token. This will match a version stored in our database. To invalidate a session, we just need to increment the version in our database. Then, when we come to check the claims of the refresh token, it will fail the version claim, forcing the user to re-authenticate. Problem solved!
 
-> This does have a drawback - after invalidating the sessions, it may take up to 5 minutes (or the whatever lifespan of the access token is) for the user to be logged out.
+In practice, we first add a version property to the refresh token as well as the user:
+
+```rust
+// New refresh token claims struct - has `version` claim
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct RefreshClaims {
+    sub: String,
+    exp: usize,
+    iss: String,
+    version: usize,
+}
+
+// New user struct - has current `session_version`
+#[derive(Debug, Clone)]
+pub struct User {
+    pub id: String,
+    pub username: String,
+    pub password_hash: String,
+    pub session_version: usize,
+}
+```
+
+Then, we can check the session version after looking up the user in the database:
+
+```rust
+let user = db.get_user_by_id(&claims.sub).expect("User not found");
+
+// Check the version in refresh token matches the database
+if claims.version != user.session_version {
+    // Return 401 if it doesn't match - log the user out
+}
+
+let token = generate_access_token(&user.id).unwrap();
+```
+
+Finally, invalidation is as simple as updating the user's session version:
+
+```rust
+user.session_version += 1;
+```
+
+> Refresh tokens do have a drawback - after invalidating the sessions, it may take up to 5 minutes (or the whatever lifespan of the access token is) for the user to be logged out.
 
 
 # Storing JWTs
