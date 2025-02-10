@@ -104,10 +104,6 @@ On each request, the server will check if the session ID (from the cookie) exist
 
 While this is really simple and has a lot of flexibility, its stateful nature causes scalability issues. Before any request can be processed, there is the latency of reaching out to a database. It is also harder to distribute this system as the session database will need to be kept in sync across the distributed system.
 
-```rust
-// TODO:
-```
-
 
 ## JWTs
 

@@ -107,7 +107,6 @@ Each line in the metadata of an HTTP request ends in `\r\n`. This makes parsing 
 
 ### Request Line
 
-<!-- TODO: reiterate format -->
 First, we parse the request line - we read the line, and split it into its 3 parts (the method, path, and version):
 
 ```rust
