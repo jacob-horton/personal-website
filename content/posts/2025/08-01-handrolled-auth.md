@@ -28,9 +28,11 @@ draft: false
     <p class="!my-0">Code</p>
 </a>
 
-In this blog, I continue the series of making things from scratch - learning how to handroll my own authentication service. The aim of this project was to learn how a typical authentication flow works and create a simple demo to be able to refer back to in the future. I explored methods to handle authentication and get around drawbacks, landing on a very common authentication pattern - using access and refresh JWTs.
+In this blog post, I continue the series of making things from scratch - learning how to handroll my own authentication service. The aim of this project was to learn how a typical authentication flow works and create a simple demo to be able to refer back to in the future. I explored methods to handle authentication and get around drawbacks, landing on a very common authentication pattern - using access and refresh JWTs.
 
 This exploration was inspired by a YouTube video I watched by Ben Awad about handrolling an authentication service. I would highly recommend watching [his video](https://youtu.be/CcrgG5MjGOk?si=iUyYPSdDm2SV5uA5)!
+
+I have included some code along the way for illustrative purposes. This code is written in Rust, but these principles should apply to any language.
 
 > Please do not take this as security advice - **only handroll your own authentication service if you know what you are doing**.
 
