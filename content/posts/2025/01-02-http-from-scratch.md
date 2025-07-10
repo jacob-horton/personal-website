@@ -9,7 +9,6 @@ categories:
   - coding
   - from-scratch
 tags:
-  - feature
   - http
   - tcp
   - coding
