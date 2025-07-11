@@ -1,6 +1,6 @@
 ---
 title: Creating a Programming Language
-date: 2025-03-09
+date: 2025-07-11
 slug: /creating-a-language/
 description: A high-level overview of how to go about creating your own programming language
 image: /images/creating-a-language/thumbnail.png
