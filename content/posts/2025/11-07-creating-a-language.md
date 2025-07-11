@@ -41,7 +41,7 @@ The syntax is critical for understanding the code - it allows us to turn the tex
 
 We usually define a syntax with a grammar. This is a formal definition of the "building blocks" of the language. There are several notations for defining a grammar. I am using a notation similar to [Backus-Naur Form (BNF)](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form).
 
-In this notation, each line defines a rule. On the left of the arrow is a non-terminal - a component that is composed of other components. To the right of the arrow defines the composition of this non-terminal. It can be a combination of more non-terminals and/or terminals - fixed values that are not composed of anything else. Terminals are put in quotes.
+In this notation, each line defines a rule. On the left of the arrow is a non-terminal - a component that is composed of other components. To the right of the arrow defines the how this non-terminal is constructed. It can be a combination of more non-terminals and/or terminals - fixed values that are not composed of anything else. Terminals are put in quotes.
 
 There are different ways to compose terminals and non-terminals. Concatenation is defined by writing two terms next to each other. The `|` symbol represents "or", meaning the value to the left **or** the right of it could be used. Similar to regex, `*` and `+` represent repetitions of a value, where `*` means 0 or more, and `+` means 1 or more.
 
@@ -95,7 +95,7 @@ We will come back to the details of these methods later, but first, we will look
 
 ## Compiler Overview
 
-A common compiler structure is shown in the image below (made by Robert Nystrom). Here, the mountain represents our compiler, where the top of the mountain represents an abstract form, and the bottom a more concrete form. The idea is to work from the source code towards a more abstract representation, where we can understand the code, then convert that back down into a form the computer can run.
+A common compiler structure is shown in the image below. Here, the mountain represents our compiler, where the top of the mountain represents an abstract form, and the bottom a more concrete form. The idea is to work from the source code towards a more abstract representation, where we can understand the code, then convert that back down into a form the computer can run.
 
 <div class="flex flex-col items-center">
     <img class="my-0" src="https://raw.githubusercontent.com/munificent/craftinginterpreters/refs/heads/master/site/image/a-map-of-the-territory/mountain.png" />
@@ -155,17 +155,18 @@ For example, the syntax tree for the expression `5 + 4 * 6` may look like this:
 
 ### Analysis
 
-With our AST, we can efficiently perform any analysis of the program that we wish. This can involve resolving variables (working out which variable uses relate to which definitions), type checking, and much more. The information gained here can be used in future stages, including optimisations and code generation.
+With our AST, we can efficiently perform any analysis of the program that we wish. This often involves checking correctness (e.g. type checking, making sure a variable exists in scope, etc.), and gathering information for future stages. This information can be essential in performing optimisations and code generation. For example, if the language is statically typed, the code generated will be dependent on the types of the variables used. Therefore, we need to work out the type of each variable to be able to generate the correct code.
 
 
 ### Optimisations
 
-A good compiler will also perform optimisations to the code that can help it run faster or with less memory usage. Naive code generation does not always produce optimal code. Using the information gained from prior analysis of the code, it can sometimes be made more efficient. For example, the code can sometimes be reordered to achieve better cache utilisation, without changing the result of the code. For more information, [Crafting Interpreters](https://craftinginterpreters.com/) briefly touches on optimisations, and [Engineering a Compiler](https://www.r-5.org/files/books/computers/compilers/writing/Keith_Cooper_Linda_Torczon-Engineering_a_Compiler-EN.pdf) is often recommended for getting started with compiler optimisations. There is also a [Wikipedia article](https://en.wikipedia.org/wiki/Optimizing_compiler#Loop_optimizations).
+A good compiler will also perform optimisations to the code that can help it run faster or with less memory usage. Naive code generation does not always produce optimal code. Using the information gained from prior analysis of the code, it can sometimes be made more efficient. For example, the code can sometimes be reordered to achieve better cache utilisation, without changing the result of the code. For more information, [Crafting Interpreters](https://craftinginterpreters.com/) briefly touches on optimisations, and [Engineering a Compiler](https://www.r-5.org/files/books/computers/compilers/writing/Keith_Cooper_Linda_Torczon-Engineering_a_Compiler-EN.pdf) is often recommended for getting started with compiler optimisations. There is also a [Wikipedia article](https://en.wikipedia.org/wiki/Optimizing_compiler) for a theoretical overview.
 
 
 ### Code Generation
 
 Once we have analysed our AST, we can start converting it to a form that our computer can understand. As mentioned before, we have three methods of doing this. Let's look at each one in more detail.
+
 
 #### Compiling
 
@@ -187,7 +188,7 @@ Here, `mov` and `add` are the opcodes. `eax`, `ebx`, `40`, and `2` are the opera
 
 Once we have machine code, we wrap it in an executable format, which is different on each operating system. For example, Windows uses the `.exe` file format for executable files. Ignoring dynamic dependencies, these executable files are self-contained, meaning that anyone can run them without having to install any software first.
 
-So, to generate an executable directly, we will need to convert to an executable file for each individual OS and architecture. This is a lot of work, therefore it is common for a language to turn the AST into an **intermediate representation (IR)**. An IR is very similar to machine code, but abstracted from a specific CPU or OS. For C, C++, and Rust, the IR used is LLVM. The LLVM compiler will handle converting into any OS/architecture we want.
+So, to generate an executable directly, we will need to convert to an executable file for each individual Operating System (OS) and architecture. This is a lot of work, therefore it is common for a language to turn the AST into an **intermediate representation (IR)**. An IR is very similar to machine code, but it is abstracted from a specific CPU or OS. The IR compiler will handle compilation to a specific architecture and OS. For C, C++, and Rust, the IR used is LLVM. The LLVM compiler can then convert into any OS/architecture that is required.
 
 
 #### Interpreting
@@ -207,7 +208,7 @@ Here are two common approaches to interpreting:
 - We create a **language Virtual Machine (VM)** that can read this bytecode and perform the action we expect in the VM's language
 - This is how Python and Java work
 
-> Language VMs are different from the kind of VM that simulates a whole computer
+> Language VMs are different from the kind of VMs that simulate a whole computer
 
 A benefit of interpreting is that we can run our code on any machine that has our interpreter/VM installed - we do not need a separate executable file per architecture/OS.
 
@@ -218,7 +219,7 @@ Finally, transpiling is the process of taking our source code and turning it int
 
 For example, TypeScript is transpiled to JavaScript, which allows it to benefit from the existing support and optimisations of JavaScript on all modern browsers.
 
-The downside of this is that we are heavily tied to the language and ecosystem of the language that we are transpiling to (the target language). It is still possible to add new features, but they must map to features in the target language, which can restrict what is possible or lead to inefficient code.
+The downside of this is that we are heavily tied to the features and ecosystem of the language that we are transpiling to (the target language). It is still possible to add new features, but they must map to features in the target language, which can restrict what is possible or lead to inefficient code.
 
 
 #### Comparison
@@ -237,9 +238,13 @@ Here is a comparison of the different approaches:
 
 # Conclusion
 
-Creating your own programming language is a project I would highly recommend every developer gives a shot. There is no shortage of text books and academic literature on the topic of language and compiler design. It may first appear to be quite daunting - there are many topics to dive into, and some get really complex - I have only scratched the surface in this post. However, you do not need to go very deep to get your first language working. I hope that, in this post, I have given you enough information to get you started on your own compiler journey, without overwhelming you too much.
+Designing a programming language may seem like a mountain to climb, but as I hope to have shown, each step is made of understandable and manageable steps. Each step builds on the last to create your very own language that works in the way *you* define.
 
-To get started, I would very highly recommend following Crafting Interpreters by Robert Nystrom, which guides you through the whole process, and points you to future areas of experimentation. After finishing this, I would encourage you to try to make your own language, which will make sure you have properly understood everything.
+Of course, we've only scratched the surface here. Every topic we've touched on opens the door to a much deeper world. There are also countless other paths to explore - type systems, memory models, tooling and more! But don't let that overwhelm you. You don't need to understand everything to get started - the best way to learn is simply by building.
+
+If you're feeling inspired, I'd highly recommend starting by following Crafting Interpreters by Robert Nystrom, which guides you through the theory and implementation of the ideas covered here, and points you to exciting next steps. Once you've worked through that, try designing your own language - it doesn't have to be groundbreaking. Even the simplest language you create will be an incredibly rewarding learning experience.
+
+Good luck, and happy language building!
 
 
 # Resources
@@ -249,3 +254,6 @@ To get started, I would very highly recommend following Crafting Interpreters by
 - **Compilers: Principles, Techniques and Tools** by Alfred Aho, Monica Lam, Ravi Sethi, and Jeffrey Ullman
 - **Types and Programming Languages** by Benjamin C. Pierce 
 - **Programming Language Pragmatics** by Michael L. Scott
+- [Wikipedia article on Backus-Naur Form (BNF)](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form)
+- [Wikipedia article on compiler optimisation](https://en.wikipedia.org/wiki/Optimizing_compiler)
+- [Wikipedia article on computer architectures](https://en.wikipedia.org/wiki/Computer_architecture)
