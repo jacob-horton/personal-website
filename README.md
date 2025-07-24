@@ -19,3 +19,8 @@ npm run dev
 ```
 
 This will run a web server at [http://localhost:1313](http://localhost:1313)
+
+
+# Publishing
+
+This website is published via GitHub Pages. The GitHub workflow called `hugo.yaml` publishes updates automatically upon committing to `main`
