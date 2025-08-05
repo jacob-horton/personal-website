@@ -26,7 +26,7 @@ tags:
 
 Hey! This blog post is the first in a 2 part series that details how I went about creating a JSON parser in Rust. In this series, I tie together all my previous posts. This post takes the theoretical compiler concepts discussed in [Creating a Language](/posts/2025/creating-a-language/) and turns them into a real, working JSON parser.
 
-In the second part, we will look into supporting parsing into a user defined struct, whilst ensuring type safety. This is implemented using procedural macros (my first dive into using writing these in Rust!). At the end, to show it all working, we will swap out the JSON parsing in [Handrolled Auth](/posts/2025/handrolled-auth/) with my very own parser. So buckle in, because this series is going to cover a lot!
+In the second part, we will look into supporting parsing into a user defined struct, whilst ensuring type safety. This is implemented using procedural macros (my first dive into using writing these in Rust!). At the end, to show it all working, we will swap out the JSON parsing in my [Hand-rolled Auth](/posts/2025/handrolled-auth/) post with my very own parser. So buckle in, because this series is going to cover a lot!
 
 
 # Overview
@@ -163,7 +163,6 @@ self.advance().unwrap();
 Ok(self.make_token(TokenKind::String(str_val)))
 ```
 
-<!-- TODO: can this be made more clear how it relates to the code -->
 When the scanner hits a `\` character, it is at the start of an escape sequence. It must convert this escape sequence into a single character. For example, the two characters `\n` are converted into a single newline character.
 
 Unicode characters involve a bit more work. These are in the form `\uXXXX` where `X` is a hex digit. After the `u`, the scanner first collects 4 hex digits, then it converts them to an integer (`u32`). From here, it can convert the integer into a character, giving us the Unicode character.
@@ -394,7 +393,6 @@ fn main() {
 }
 ```
 
-<!-- TODO: how Rust knows to parse to Option<f32> -->
 To support this, we can create a `Parse` trait (sometimes called an interface), which has a `parse` function. This can be implemented on any type, and defines a function that returns the parsed value as that type. We can provide an implementation of these on the Rust equivalents of the basic JSON types (including strings, lists, integers, floats, Booleans, etc.), and users may provide implementations other types, including ones they define. We will also define a parse function for `JsonValue`.
 
 Here is the trait:
@@ -659,8 +657,8 @@ To do this in Rust, we can use a [derive macro](https://doc.rust-lang.org/refere
 - [GitHub repo](https://github.com/jacob-horton/json-parser/)
 - [Serde](https://serde.rs/)
 - [JSON specification](https://www.json.org/json-en.html)
-- [Handrolled auth post](/posts/2025/handrolled-auth/)
-- [Rust derive macro](https://doc.rust-lang.org/reference/procedural-macros.html)
+- [Hand-rolled auth post](/posts/2025/handrolled-auth/)
+- [Rust procedural macros](https://doc.rust-lang.org/reference/procedural-macros.html)
 - [Crafting Interpreters](https://craftinginterpreters.com/) (covers scanners, parsers, ASTs, and much more)
-<!-- TODO: - [Next post](/posts/2025/parsing-json-2) -->
+- [Next post](/posts/2025/parsing-json-2)
 
