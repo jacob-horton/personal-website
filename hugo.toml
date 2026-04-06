@@ -3,8 +3,10 @@ languageCode = 'en-us'
 title = "Jacob's Blog"
 theme = 'pehtheme-simple-hugo'
 
-paginate = 6
 summaryLength = 20
+
+[pagination]
+	pagerSize = 6
 
 [params]
 # Meta description, not exceeding 160 characters, used for the meta description within the HTML head

@@ -1,7 +1,7 @@
 ---
 title: "About"
 date: 2023-10-06T20:37:29+07:00
-image: images/about-image.avif
+image: images/about-image.png
 caption: Photo by Jeff Sheldon on Unsplash
 draft: false
 ---
