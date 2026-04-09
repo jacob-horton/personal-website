@@ -7,7 +7,7 @@
     "dev:pagefind": "npx -y pagefind --site public --serve",
     "dev:generate": "npx tailwindcss -i ./assets/input.css -o ./themes/pehtheme-simple-hugo/assets/css/main.css -w",
     "dev:hugo": "hugo server --buildDrafts",
-    "dev": "run-p dev:*",
+    "dev": "run-p dev:generate dev:hugo",
     "build:pagefind": "npx -y pagefind --site public",
     "build:generate": "npx tailwindcss -i ./assets/input.css -o ./themes/pehtheme-simple-hugo/static/assets/css/main.css --minify",
     "build:hugo": "hugo",
