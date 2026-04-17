@@ -1,6 +1,6 @@
 ---
 title: "Stop Making Slow Web Apps: How I achieved a 0.2s LCP  ⃰"
-date: 2026-04-14
+date: 2026-04-12
 slug: /stop-making-slow-web-apps/
 description: We're spoiled by fast hardware and bloated JS bundles. Here's why the 2.5s LCP metric is a joke, and how I built a blazingly fast SPA without relying on expensive serverless magic
 image: /images/stop-making-slow-web-apps/thumbnail.png
@@ -25,36 +25,26 @@ tags:
 draft: true
 ---
 
-<!-- TODO: tighten who I'm addressing - am I talking about people with slow web apps or to them -->
-<!-- TODO: check spelling consistency (UK, backend/frontend, etc.) -->
-<!-- TODO: images -->
-<!-- TODO: optimise all my thumbnails -->
-<!-- TODO: I mention my project throughout, but don't address it at the start - bring it up earlierNOTE: I've now mentioned it earlier, but need to tie back to that -->
+<!-- TODO: 
+- Write down who the target audience is and aim for that
+- If possible, say how I solved each part as I go (weave in solutions)
+- Address HTML only, and make it clear I'm talking about SPAs
+- TODO: tighten who I'm addressing - am I talking about people with slow web apps or to them
+- TODO: check spelling consistency (UK, backend/frontend, etc.)
+- TODO: images
+- TODO: optimise all my thumbnails
+-->
+
 
 ## Introduction
 
-The web is slow. Computers and internet hardware is a miracle - data can travel at the speed of light across the world and be processed in milliseconds, or even microseconds by a computer. Given this, websites should be lightning fast, given they're just a bit of styled text and boxes right? Despite this, I find many websites to feel slow and sluggish, and I think we can do better. TODO: take a hit at a couple large websites
+The web is slow. Hardware is a miracle - data travels at the speed of light and processors execute operations in microseconds. Given that a webpage is ultimately just styled text and boxes, it should be lightning fast, right? But it's not - to me the modern web feels sluggish. Elements shift around, buttons are unclickable, and images take ages to render.
 
+Why? Because performance generally isn't the priority. We developers are spoiled by hardware, many having M-series MacBooks and gigabit internet, blissfully unaware of the UX train-wreck that their website causes on a 5 year old Android phone. Optimising takes time, and when it's not a pressing issue on our machines, why would we prioritise it? Because it pays off - Walmart famously found that for every 100 millisecond improvement in loading speed, they gained 1% revenue. And even for a hobby project, reducing bandwidth and CPU usage saves your user's battery life, as well as server costs.
 
-## Why it Matters
+I am guilty of ignoring performance too. But recently, I wanted to see how far I could push the performance of my hobby project, [The Scoreboard App](https://thescoreboard.app), in just a weekend. The result was a Largest Contentful Paint (LCP) of 200ms and virtually instant navigation.
 
-Have you ever been to a website that's painful to use? Text, buttons, and especially images take forever to render in, buttons aren't clickable for a while, things shift about as it loads in, so you end up clicking the wrong thing. I certainly have, and I find it frustrating. It puts me off from using that website. And it's not just me that feels this - Walmart, for example, found that every for 100 millisecond improvement in loading speed, they noticed a 1% increase in revenue (TODO: proper link - https://wpostats.com/2015/11/04/walmart-revenue/).
-
-TODO: Even if it's not entirely necessary for users, it's still nice to save bandwidth and compute/energy/battery
-
-
-## Why Websites are Slow
-
-Performance isn't usually a high priority. I believe that's the main reason. Optimising performance takes time and many intentional decisions, and when shipping features fast is a priority, this is often skipped over. In addition, a lot of developers have better hardware than the average person, so even a poorly optimised website can load fast for them.
-
-However, I think that it's important to optimise, and on many websites (especially hobby ones) a few changes can make a decent speed improvement. And why not take it to the extreme - who doesn't want a website so fast that you question whether the data is actually being loaded correctly? I have a hobby project ([The Scoreboard App](https://thescoreboard.app)). From a few small improvements, that only took a weekend, I managed to get by LCP down to 200ms, and have essentially instant navigation between pages. I'll be giving examples along the way using this project and at the end, I'll dive into how I made it so fast.
-
-<!-- TODO: fix double note -->
-> In this blog post, I jest about slow websites, blissfully ignoring all lot of complexity required for a more feature rich web app. I'm basing this off my hobby project that is fairly simple, has no analytics, tracking, large assets, etc. which makes it considerably easier to be faster than a web app with more complexity.
->
-> Despite this, I think what I discuss here could be useful anyway. Yes I blissfully ignore the harder problems, but what I hope for with this article is that you look into how you could improve performance in your own app
-
-> I am guilty of ignoring performance too - in fact I've barely considered it in most of my hobby projects. I, along with many developers, are spoiled with a fast, modern laptop, and an internet connection in the hundreds of megabits. But our users on a 4 year-old Android phone on a train do not share that privilege. I think it's important that they too have a nice experience using a web app.
+Yes, my app is simpler than a massive enterprise platform, but the principles still stand because the physics of the internet and your browser remain the same. Let's look into why current web standards are a joke, how I beat them, and how you can do the same.
 
 
 ## What Makes a Website Slow
@@ -64,18 +54,20 @@ There are many reasons a website could be slow. Anything that increases the time
 
 ### Request Waterfalls
 
-Most web pages require many requests to get all the data they need to render. Trips to the backend take time, even if the backend is fast, you're restricted by the speed of the network infrastructure. If we make requests one after another, we get what's called a "request waterfall". Essentially, it's a relay race where each request is waiting on the last to complete. Every "handover" in that relay race adds a latency tax - the time to physically travel to the server and back, regardless of the size of the data. This is especially punishing on a slow internet connection.
+Most web pages require multiple requests to fetch all the data they need to render - content, user details, assets, etc. are all requests. A naive approach would be to make one request after another. But while waiting for the response, the browser isn't doing anything. It can be thought of as a relay race - each request waits on the last to complete, adding latency at each step (even if the data is small, it has to physically travel to the server and back).
 
-Often, requests do not depend on each other. For example, in a dashboard, I don't need to wait on my profile picture to load before I start loading the real data/stats, they can happen at the same time. When requests don't depend on each other, they can often be fired off at the same time (in parallel), massively improving time to load data. We'll look at this in more detail later.
+If one request doesn't depend on another (e.g. a profile picture and the page content), we can send off the requests in parallel, massively improving the time to load data.
+
+<!-- TODO: graphic -->
 
 > Browsers have a limit on the number of parallel requests to the same domain (usually 6), so stacking is great, but 50 requests at once will create a staggered stack.
 
 
 ### Asset Bloat
 
-Images and videos can get very large. If we don't optimise their size, you have a lot more bytes to download, meaning it'll take longer to load. This is especially crucial to get right for the LCP metric - if you have a large asset, it'll likely be the element used for the LCP calculation. You need it to load fast. Let's have a look at how long different sized assets take to load
+Images and videos can be very large if not compressed. The more bytes the assets are, the longer it'll take to download them:
 
-TODO: check this
+<!-- TODO: check this -->
 | Asset Size | Type | 5G / Fiber (100 Mbps) | 4G / High-End (20 Mbps) | 3G / Average (1.6 Mbps) |
 | --- | --- | --- | --- | --- |
 | 50 KB | Optimized Icon/Logo | < 0.01s | 0.02s | 0.25s |
@@ -85,24 +77,26 @@ TODO: check this
 
 > These are idealised times. In reality, it's slower due to the time to establish the initial connection handshake and TCP Slow Starts - when the server sends small data chunks at first, only increasing speed once it confirms the network can handle it.
 
+Even if placeholders are used while assets load in, a user staring at a gray or blurry box for 5 seconds will still percieve your website as slow.
+
 
 ### JavaScript Bloat
 
-The more code a website needs to load to be able to run, the slower it is. This problem is two-fold - more code = more data to transfer, as well as more time that your browser spends parsing and running it. While it's parsing, the main thread is blocked, meaning the browser can't even respond to a user's click or scroll. It's not slow, it's frozen.
+The more code a website needs to load, the slower it is. This problem is two-fold - more code means more data to transfer, as well as more time that your browser spends parsing and running it. While it's parsing, the main thread is blocked, meaning the browser can't even respond to a user's click or scroll. It's not slow, it's frozen.
 
-Libraries are "cheap" - why spend time developing something when a library does it for you? Well, because you likely only use a fraction of what that library has to offer, but your browser is still having to download, parse and compile all of it. Again, this blocks the main thread, preventing any user input.
+Libraries are "cheap" - why spend time developing something when a library does it for you? Well, because you likely only use a fraction of what that library has to offer, but your browser is still having to download, parse and compile all of it.
 
 > Bundlers (e.g. Vite, Webpack, and Rollup) perform tree shaking - removing code that is never used. This isn't perfect - bundlers often struggle with libraries that have side effects or use CommonJS modules.
 
 
-### backend Latency
+### Backend Latency
 
-If you have a slow, or far away backend, the time for it to respond to requests is large. This makes any action feel slow as most actions will require making a request to a backend and waiting for a response. By making your backend fast, and ideally close to your users, you'll speed up the time for an action to complete
+Two key factors in backend latency are the server's processing speed and its physical distance from the end user. If these aren't optimised, any action hitting the backend will feel sluggish. By making your backend fast, and ideally close to your users, you'll speed up the time for an action to complete.
 
 
 ## The 2.5-Second Lie
 
-The Core Web Vitals are a set of metrics defined by Google that are designed to measure real-word user experience of a page load. TODO: https://web.dev/articles/vitals. These are some important metrics:
+The [Core Web Vitals](https://web.dev/articles/vitals) are a set of metrics defined by Google that are designed to measure real-word user experience of a page load. These are some important metrics:
 
 | Metric | Acronym | Description | What's considered "good" |
 | --- | --- | --- | --- |
@@ -113,11 +107,9 @@ The Core Web Vitals are a set of metrics defined by Google that are designed to 
 
 > You can check most of these on any website right now by opening up Google Chrome (or any of it's derivatives), hitting F12, and navigating to the "Lighthouse" tab. We'll go into more detail on Lighthouse later.
 
-Achieving good values in these metrics is key to a good user experience, and are often the focus when optimising a website. LCP is especially important as it accounts for the largest part of the screen being drawn, even if it's after the first element. This is much more indicative of how fast a website load feels than FCP.
+Achieving good values in these metrics is key to a good user experience. LCP is especially important as it accounts for the largest part of the screen being drawn, even if it's after the first element. This is much more indicative of how fast a website load feels than FCP.
 
-These metrics are measured at the 75th percentile of your users. It's important to remember that if you're using an M-series MacBook, with a good internet connection, you are going to have a faster LCP than most people. Therefore you need to aim for a value ideally below ~1.5s to achieve 2.5s 75th percentile, but ideally much lower. A 75th percentile of 2.5s means 25% of your users are still experiencing worse than 2.5s LCP - I think we should care about those users more.
-
-I feel these values are generous. 2.5 seconds may be okay enough for most websites, but it's certainly not optimal - we can do much better. Achieving 2.5 seconds is the bare minimum to not be penalised by Google's search rankings, to be actually good, we want to aim faster. To put it another way, aiming for a 2.5s P75 is like a restaurant promising that 75% of their customers won't get food poisoning. It's a start, but I'm not sure I want to eat there.
+These metrics are measured at the 75th percentile (P75) of your users. For a website with a 2.5s LCP at P75, 25% of their users will be experiencing worse than 2.5s LCP - we should care about those users more. I feel the Core Web Vitals "good" values are generous. Achieving 2.5 seconds is the bare minimum to not be penalised by Google's search rankings. To be actually good, we want to aim faster. To put it another way, aiming for a 2.5s P75 is like a restaurant promising that 75% of their customers won't get food poisoning. It's a start, but I'm not sure I want to eat there.
 
 
 ## Diagnosing the Issue
@@ -125,17 +117,18 @@ I feel these values are generous. 2.5 seconds may be okay enough for most websit
 Before you start blindly improving performance of parts of your web app, you need to diagnose what's actually causing the slowness. You may spend days improving the performance of your backend, but if the bottleneck is the time it takes to download your multi-megabyte frontend, then it changes nothing for your users.
 
 There are a few key ways I have used to find performance bottlenecks:
-- Request waterfalls
+- The network tab
 - Lighthouse (in Google Chrome, but also has a CLI)
 - Bundle size analysers
 
 If you can use these effectively, you can target the areas of your app that will give you the greatest improvement.
 
 
-### Waterfalls
+### The Network Tab
 
-We mentioned earlier what a "request waterfall" is. Browsers have a built in tool to see this visually. In Firefox and Chrome, you can see it in the "Network" tab of your developer tools, but you can get even more insights under the "Performance" tab. Let's have a look at a waterfall:
+Browsers have a built-in tool to see a request waterfall. In Firefox and Chrome, you can see it in the "Network" tab of your developer tools, but you can get even more insights under the "Performance" tab. Let's have a look at a waterfall:
 
+<!-- TODO: annotate -->
 ![An example waterfall](/images/stop-making-slow-web-apps/waterfall.png)
 
 On the x-axis we have time - we want this to be as short as possible. Each box is a request. Notice those yellow boxes that are all stacked on top of each other - that's what you're aiming for. All those requests are made at the same time. Imagine how long this chart would be if we did one after the other. If you notice a request firing after another one that it doesn't depend on, that's something you can target - try to get them firing at the same time.
@@ -145,23 +138,23 @@ On the x-axis we have time - we want this to be as short as possible. Each box i
 
 Google Chrome's Lighthouse tool is incredible for measuring performance. It analyses your page load and provides a bunch of critical insights into your core metrics and tips for how to address them. Run this on your own website and see what it says!
 
-TODO: either blank it out or check if people are happy with me sharing stats
+<!-- TODO: either blank it out or check if people are happy with me sharing stats -->
 ![An example lighthouse result](/images/stop-making-slow-web-apps/lighthouse.png)
 
-> This is a "lab" test - it'll be a lot better than Real-world User Metrics (RUM), which are "field" tests
+> This is a "lab" test - it'll likely be a lot better than Real-world User Metrics (RUM), which are "field" tests
 
 
 ### Bundle Size Analysers
 
-As mentioned before, every extra byte of code results in longer transfer times as well as longer parsing times. Getting the bundle size down is crucial to a fast initial load.
+Getting the JavaScript bundle size down is crucial to a fast initial load. You don't need a library that's almost 100KB just for one debounce function (I'm looking at you [lodash](https://lodash.com/)). And you certainly don't need a library to work out if something [is even](https://www.npmjs.com/package/is-even) or [odd](https://www.npmjs.com/package/is-odd). All these libraries add up to several hundred kilobytes or even megabytes!
 
-You don't need a library that's almost 100KB just for one debounce function (I'm looking at you [lodash](https://lodash.com/)). And you certainly don't need a library to work out if something [is even](https://www.npmjs.com/package/is-even) or [odd](https://www.npmjs.com/package/is-odd). All these libraries add up to several hundred kilobytes or even megabytes!
+> JavaScript is usually compressed before transferring, making the transfer size of your JS a lot smaller. But it's important to note, it'll still expand to the large size, which is what your browser's CPU has to parse.
 
-> JavaScript is usually compressed before transferring, making the transfer size of your JS a lot smaller. But it's important to note, it'll still expand to the large size, which is what your browser has to parse.
+If it makes sense, write the part of the library you need by yourself. It'll be much smaller (less bandwidth), likely faster, and it's one less package that might have malware hiding somewhere.
 
-If it makes sense, write the part of the library you need by yourself. It'll be much smaller (less bandwidth), likely faster, and it's better for security - one less package that might have malware hiding somewhere.
-
-There are great plugins here like [Rollup Plugin Visualizer](https://www.npmjs.com/package/rollup-plugin-visualizer) that you can use to find which packages are the largest, and what to target. Here's an example output
+> There are great plugins here like [Rollup Plugin Visualizer](https://www.npmjs.com/package/rollup-plugin-visualizer) that you can use to find which packages are the largest, and what to target. Here's an example output:
+>
+> <!-- TODO: example rollup plugin visualizer -->
 
 
 ## Architecture Matters
@@ -173,27 +166,27 @@ Apps made in SolidJS are faster for several reasons:
 - It has granular reactivity (using signals) - it only updates what's needed. No re-running whole components because a piece of text changed
 - It doesn't have a virtual DOM - no heavy runtime costs from re-rendering and trying to locate what's changed
 
-For my backend, I went a bit overkill with Rust and Axum. I chose it for many reasons - compile time guarantees, powerful type system, incredible speed, and also because I'm familiar with it (I actually wanted to finish this project!) Believe it or not, I didn't start out this project wanting to crazily optimise my website, that came mid way through. Rust just happened to suit this perfectly, and is particularly efficient for scaling, even on a lower powered server. You don't have to go this extreme - Rust can be a bit difficult to work with sometimes. But there are several speedy, ergonomic options - Golang would be an excellent choice here.
+For my backend, I went a bit overkill with Rust and Axum. I chose it for many reasons - compile time guarantees, powerful type system, incredible speed, and also because I'm familiar with it (I actually wanted to finish this project!) Plus Rust runs very well on low-end hardware, like a cheap server. You don't have to go this extreme - Rust can be a bit difficult to work with sometimes. But there are several speedy, ergonomic options - Golang would be an excellent choice here.
 
-I know SSR is the hot new thing at the moment, but I'm not convinced it's worth it for a lot of use cases. It can definitely help with LCP, and especially SEO. However, it can also increase the Time To First Byte (TTFB), presenting users with a blank screen until the page has been rendered on the server. And then after that, it has a hydration step, where the user can't interact with the website until it's been booted up on the client-side. For my use case, I decided that I wouldn't gain much from using SSR, especially considering the complexity added by having to manage state both server-side and client-side.
+I know Server Side Rendering (SSR) is the hot new thing at the moment, but I'm not convinced it's worth it a lot of the time. It can definitely help with LCP, and especially Search Engine Optimisation (SEO). However, it can also increase the Time To First Byte (TTFB), presenting users with a blank screen until the page has been rendered on the server. And then after that, it has a hydration step, where the user can't interact with the website until it's been booted up on the client-side. For my use case, I decided that I wouldn't gain much from using SSR, especially considering the complexity added by having to manage state both server-side and client-side.
 
 By avoiding SSR, I also get the benefit of my entire frontend being just static files. This is a massive win because they can be cached on a CDN, in my case that's Cloudflare. This gives amazing speeds globally, even if you only have one server location.
 
 
 ## Serverless is Hurting Your Performance
 
-TODO: link to serverless explanation
+<!-- TODO: link to serverless explanation -->
 Serverless is magic - your server only runs when a request is received. Price wise, this can be really cost effective (often free) for a hobby project. It also scales easily to lots of traffic. But this comes at the cost of cold starts, inconsistent performance, and lack of control. If you're aiming for a fast LCP, a 2-second cold start will completely destroy your metrics
 
 The other downside is your database has to sit somewhere else. That extra hop from your backend to your database could add many milliseconds (that are unnecessary in a hobby project).
 
-What's the alternative? There are many, but I opted for a linux VPS. This gave me ultimate control for ~£3 a month. No cold starts, and the database sits on the same server as the backend, making database lookups essentially free. A network request to localhost usually takes **less than a millisecond**, whereas a hop to an external database can be anywhere from **20ms to 100ms+** of latency just for the round trip (ignoring database computation time)
+What's the alternative? There are many, but I opted for a linux VPS. This gave me ultimate control for ~£3 a month. No cold starts, and the database sits on the same server as the backend, making database lookups essentially free. A network request to localhost usually takes **less than a millisecond**, whereas a hop to an external database in a different region can add **20ms to 100ms+** just for the round trip.
 
 If you want performance, consistency, and ultimate control, consider a VPS.
 
 > If you're now considering a VPS, make sure to do your research - it's definitely more maintenance and scaling and security require more thought. If you don't want to worry about this complexity, feel free to ignore this entire section. (Essentially don't blame me if this doesn't suit your needs!)
 
-TODO: reference other article coming soon
+<!-- TODO: reference other article coming soon -->
 
 
 ## My Experience
@@ -203,6 +196,7 @@ TODO: reference other article coming soon
 <!-- TODO: detail tradeoff between first load and subsequent navigation -->
 <!-- TODO: optimistic rendering + caching/tanstack - faking it really improves speed -->
 <!-- TODO: note that my LCP element is not an image, it's text, making it much easier to get a low value -->
+<!-- TODO: SVGs vs PNGs -->
 
 - Decided to dive a bit into the world of performance optimisations on the web
 - Lighthouse statistics, graphs to show improvement, concrete numbers
@@ -234,18 +228,10 @@ To push it more:
 
 ## Conclusion
 
-From gemini:
-- Performance isn't an optimization step you do at the end; it's a series of small, respectful choices you make for your users. You don't need a team of 50 engineers to make a fast site - you just need to stop adding things you don't need
-- Mention scaling (docker, k8s, serverless etc.)
+<!-- From gemini: -->
+<!-- - Performance isn't an optimization step you do at the end; it's a series of small, respectful choices you make for your users. You don't need a team of 50 engineers to make a fast site - you just need to stop adding things you don't need -->
+<!-- - Mention scaling (docker, k8s, serverless etc.) -->
 
 ## Resources
 
 <!-- TODO: add useful links here -->
-- **Crafting Interpreters** by Robert Nystrom
-- **Engineering a Compiler** by Keith D. Cooper & Linda Torczon
-- **Compilers: Principles, Techniques and Tools** by Alfred Aho, Monica Lam, Ravi Sethi, and Jeffrey Ullman
-- **Types and Programming Languages** by Benjamin C. Pierce 
-- **Programming Language Pragmatics** by Michael L. Scott
-- [Wikipedia article on Backus-Naur Form (BNF)](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form)
-- [Wikipedia article on compiler optimisation](https://en.wikipedia.org/wiki/Optimizing_compiler)
-- [Wikipedia article on computer architectures](https://en.wikipedia.org/wiki/Computer_architecture)
