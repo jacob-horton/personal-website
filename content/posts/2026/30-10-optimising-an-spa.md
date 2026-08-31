@@ -68,6 +68,7 @@ That's an unfortunate consequence of the architecture I chose. I've tried to red
 
 A real user's real experience is important. Metrics have limitations, but it's even worse when you only measure lab performance. Your user's experience is difficult to distill into a single synthetic benchmark. And when you are guessing how a user uses the app, and what hardware they may be using, the data you collect is skewed. By using Real User Monitoring (RUM), you can record every interaction actual visitors have with your website. With this, you get a way better insight into how your website is actually experienced by real people.
 
+> [!NOTE]
 > This isn't always possible - without a large user-base, I was unable to measure a reliable P75. The best I could do was assume Lighthouse's "throttled" mode would reflect a P75. But the reality is it varies a lot, depending on who uses the website. Maybe most of your users have the latest and greatest hardware and a stable internet connection. Or maybe they're on decade old hardware with an intermittent internet connection. That wildly changes the P75.
 
 So I had a double whammy - I was using the wrong metric, under lab conditions. It meant I missed low hanging fruit to improve the perceived speed of the app. Notably, optimistic rendering on actions. Because this wouldn't move the needle on LCP, I didn't end up implementing this, even though it would have made interactions feel instantaneous.

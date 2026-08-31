@@ -106,6 +106,7 @@ A common compiler structure is shown in the image below. Here, the mountain repr
     </p>
 </div>
 
+> [!NOTE]
 > When I say "compiler" here, I am using it broadly to encompass compilers, interpreters, and transpilers.
 
 
@@ -185,6 +186,7 @@ add     eax, ebx   ; Add registers `eax` and `ebx` together
 
 Here, `mov` and `add` are the opcodes. `eax`, `ebx`, `40`, and `2` are the operands.
 
+> [!NOTE]
 > Different CPUs may have different [architectures](https://en.wikipedia.org/wiki/Computer_architecture), each of which will have its own instruction set. This means that machine code varies per CPU that you are compiling for.
 
 Once we have machine code, we wrap it in an executable format, which is different on each operating system. For example, Windows uses the `.exe` file format for executable files. Ignoring dynamic dependencies, these executable files are self-contained, meaning that anyone can run them without having to install any software first.
@@ -209,6 +211,7 @@ Here are two common approaches to interpreting:
 - We create a **language Virtual Machine (VM)** that can read this bytecode and perform the action we expect in the VM's language
 - This is how Python and Java work
 
+> [!NOTE]
 > Language VMs are different from the kind of VMs that simulate a whole computer
 
 A benefit of interpreting is that we can run our code on any machine that has our interpreter/VM installed - we do not need a separate executable file per architecture/OS.

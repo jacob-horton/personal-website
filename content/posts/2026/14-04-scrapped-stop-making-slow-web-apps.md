@@ -60,6 +60,7 @@ If one request doesn't depend on another (e.g. a profile picture and the page co
 
 <!-- TODO: graphic -->
 
+> [!NOTE]
 > Browsers have a limit on the number of parallel requests to the same domain (usually 6), so stacking is great, but 50 requests at once will create a staggered stack.
 
 
@@ -75,6 +76,7 @@ Images and videos can be very large if not compressed. The more bytes the assets
 | 1 MB | Large Photo / JS Bundle | 0.08s | 0.40s | 5.00s |
 | 5 MB | Unoptimized Hero Image | 0.40s | 2.00s | 25.00s |
 
+> [!NOTE]
 > These are idealised times. In reality, it's slower due to the time to establish the initial connection handshake and TCP Slow Starts - when the server sends small data chunks at first, only increasing speed once it confirms the network can handle it.
 
 Even if placeholders are used while assets load in, a user staring at a gray or blurry box for 5 seconds will still percieve your website as slow.
@@ -86,6 +88,7 @@ The more code a website needs to load, the slower it is. This problem is two-fol
 
 Libraries are "cheap" - why spend time developing something when a library does it for you? Well, because you likely only use a fraction of what that library has to offer, but your browser is still having to download, parse and compile all of it.
 
+> [!NOTE]
 > Bundlers (e.g. Vite, Webpack, and Rollup) perform tree shaking - removing code that is never used. This isn't perfect - bundlers often struggle with libraries that have side effects or use CommonJS modules.
 
 
@@ -105,6 +108,7 @@ The [Core Web Vitals](https://web.dev/articles/vitals) are a set of metrics defi
 | **Interaction to Next Paint** | **INP** | Assesses a page's **overall responsiveness to user interactions** by observing the latency of all click, tap, and keyboard interactions | 200ms |
 | **Cumulative Layout Shift** | **CLS** | The **largest burst of layout shift** scores for every unexpected layout shift that occurs during the entire lifecycle of a page (essentially how much the page moves as it loads) | 0.1 |
 
+> [!NOTE]
 > You can check most of these on any website right now by opening up Google Chrome (or any of it's derivatives), hitting F12, and navigating to the "Lighthouse" tab. We'll go into more detail on Lighthouse later.
 
 Achieving good values in these metrics is key to a good user experience. LCP is especially important as it accounts for the largest part of the screen being drawn, even if it's after the first element. This is much more indicative of how fast a website load feels than FCP.
@@ -141,6 +145,7 @@ Google Chrome's Lighthouse tool is incredible for measuring performance. It anal
 <!-- TODO: either blank it out or check if people are happy with me sharing stats -->
 ![An example lighthouse result](/images/stop-making-slow-web-apps/lighthouse.png)
 
+> [!NOTE]
 > This is a "lab" test - it'll likely be a lot better than Real-world User Metrics (RUM), which are "field" tests
 
 
@@ -148,10 +153,12 @@ Google Chrome's Lighthouse tool is incredible for measuring performance. It anal
 
 Getting the JavaScript bundle size down is crucial to a fast initial load. You don't need a library that's almost 100KB just for one debounce function (I'm looking at you [lodash](https://lodash.com/)). And you certainly don't need a library to work out if something [is even](https://www.npmjs.com/package/is-even) or [odd](https://www.npmjs.com/package/is-odd). All these libraries add up to several hundred kilobytes or even megabytes!
 
+> [!NOTE]
 > JavaScript is usually compressed before transferring, making the transfer size of your JS a lot smaller. But it's important to note, it'll still expand to the large size, which is what your browser's CPU has to parse.
 
 If it makes sense, write the part of the library you need by yourself. It'll be much smaller (less bandwidth), likely faster, and it's one less package that might have malware hiding somewhere.
 
+> [!NOTE]
 > There are great plugins here like [Rollup Plugin Visualizer](https://www.npmjs.com/package/rollup-plugin-visualizer) that you can use to find which packages are the largest, and what to target. Here's an example output:
 >
 > <!-- TODO: example rollup plugin visualizer -->
@@ -184,6 +191,7 @@ What's the alternative? There are many, but I opted for a linux VPS. This gave m
 
 If you want performance, consistency, and ultimate control, consider a VPS.
 
+> [!NOTE]
 > If you're now considering a VPS, make sure to do your research - it's definitely more maintenance and scaling and security require more thought. If you don't want to worry about this complexity, feel free to ignore this entire section. (Essentially don't blame me if this doesn't suit your needs!)
 
 <!-- TODO: reference other article coming soon -->

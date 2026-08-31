@@ -70,6 +70,7 @@ pub enum TokenKind {
 }
 ```
 
+> [!NOTE]
 > The `TokenKind::String` variant here stores an extra value - the result of removing the surrounding quotes, and handling escape sequences.
 >
 > The parsing of numbers is handled in the later parsing phase, so we don't store any extra information on `TokenKind::Number`. This is because we don't know what type of number we want (e.g. `i32`, `f64`, `u8`, etc.) until the parsing phase.
@@ -133,6 +134,7 @@ pub fn next_token(&mut self) -> Result<Option<Token>, ScannerErr> {
 }
 ```
 
+> [!NOTE]
 > The `.map(Some)` notation is used as `number`, `literal`, `string`, and `symbol` all return `Result<Token, ScannerErr>`, but we need to turn the `Token` into `Option<Token>`. `map(Some)` will wrap the inner value in `Some(_)` if the `Result` is `Ok`
 
 Here, we can see that the scanner identifies the type of token to scan from the first character of said token. Here are the options:
@@ -263,6 +265,7 @@ if let Ok(c) = next_char {
 }
 ```
 
+> [!NOTE]
 > This leaves out some edge cases to make it easier to read. For example, it does not ensure that there is at least one digit after an `e`. For the full number parsing code, look [here](https://github.com/jacob-horton/json-parser/blob/main/json_parser/src/scanner.rs#L126) in my GitHub repo.
 
 ## Scanning Other Literals

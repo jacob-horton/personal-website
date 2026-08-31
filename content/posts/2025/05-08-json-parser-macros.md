@@ -97,6 +97,7 @@ println!("{phone_number}");
 
 We can achieve this using a custom implementation of `Parse` for the `Person` struct. However, we don't want to make a user of this library have to implement the `Parse` trait themselves for every type they want to parse. Luckily for us, Rust has a powerful macro system that allows us to write some code that generates the `Parse` implementation automatically!
 
+> [!NOTE]
 > Whenever I mention the "user", I am referring to a developer using this parser as a library
 
 # Macros
@@ -143,6 +144,7 @@ match &input.data {
 
 Here, `data` is the information specific to a struct (e.g. its properties), which we pass through to our function `derive_json_deserialise_struct`, along with the identifier (name of the struct).
 
+> [!NOTE]
 > Throughout this post I use the terms "field" and "property" interchangably
 
 
@@ -202,6 +204,7 @@ impl<T: Parse> Parse for HashMap<String, T> {
 }
 ```
 
+> [!NOTE]
 > I have removed the trailing comma check for readability.
 >
 > For an explanation of this code, please refer back to [Parsing Objects](/posts/2025/parsing-json-1/#parsing-objects) in my previous post.
@@ -280,6 +283,7 @@ Person {
 }
 ```
 
+> [!NOTE]
 > I use `panic!` and `expect` in these examples to make the code easier to follow. In the [full code](https://github.com/jacob-horton/json-parser/blob/main/json_parser_macros/src/lib.rs), I have proper error handling using `Result`s
 
 

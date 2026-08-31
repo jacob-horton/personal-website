@@ -1,0 +1,24 @@
+{{- /*
+	Renders plain blockquotes as-is (e.g. actual quotations), but adds a bold
+	label to GitHub-style alert blockquotes, e.g.:
+
+		> [!NOTE]
+		> Some note text.
+
+	This is how exceptions to the "every blockquote gets a label" rule are
+	made - just use a plain blockquote with no `[!TYPE]` marker.
+*/ -}}
+{{- if eq .Type "alert" -}}
+	{{- $label := printf "%s:" (title .AlertType) -}}
+	{{- with .AlertTitle -}}
+		{{- $label = . -}}
+	{{- end -}}
+	<blockquote>
+		<p class="!mt-0 !mb-1 font-bold">{{ $label }}</p>
+		{{ .Text }}
+	</blockquote>
+{{- else -}}
+	<blockquote>
+		{{ .Text }}
+	</blockquote>
+{{- end -}}

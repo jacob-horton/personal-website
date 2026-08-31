@@ -125,8 +125,10 @@ let version = parts.next().unwrap().trim().to_string();
 
 I decided to only support the official status codes, which I represent with an enum, called `Method`. This means I need to convert from a string to a `Method` (which I do in `Method::from_str` using a simple match statement).
 
+> [!NOTE]
 > Here, I am using lots of `unwrap`s to keep the code simple. In an actual HTTP server, it should handle an incorrectly formatted HTTP request without crashing the server.
 
+> [!NOTE]
 > I use trim to get rid of extra whitespace. This is necessary for the end of the line, as `read_line` reads until a `\n`, leaving the `\r` in the buffer. This may not exactly match the HTTP spec, but it works for my purposes.
 
 
@@ -151,6 +153,7 @@ while !buf.trim().is_empty() {
 }
 ```
 
+> [!NOTE]
 > I have stored these in a `Vec` instead of a `HashMap` or `BTreeMap` as sometimes we may want multiple headers with the same name (e.g. `Set-Cookie`)
 
 
@@ -347,6 +350,7 @@ let resp = router
 stream.write_all(resp.to_string().as_bytes()).unwrap();
 ```
 
+> [!NOTE]
 > The code in my project on GitHub is more complicated, but still follows the same principle. I have glob and parameter matching to make pulling variables out of the path easier. I also allow for a global state of type `T` which is passed to each handler.
 
 

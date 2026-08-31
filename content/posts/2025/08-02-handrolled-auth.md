@@ -34,6 +34,7 @@ This exploration was inspired by a YouTube video I watched by Ben Awad about han
 
 I have included some code along the way for illustrative purposes. This code is written in Rust, but these principles should apply to any language.
 
+> [!NOTE]
 > Please do not take this as security advice - **only handroll your own authentication service if you know what you are doing**.
 
 
@@ -91,6 +92,7 @@ pub struct Database {
 
 ```
 
+> [!NOTE]
 > For more information on securely storing passwords, including salting and hashing, [see here](https://www.vaadata.com/blog/how-to-securely-store-passwords-in-database/).
 
 
@@ -144,6 +146,7 @@ let access_token = encode(
 ).unwrap();
 ```
 
+> [!NOTE]
 > More information:
 >
 > - [JWT structure](https://jwt.io/introduction)
@@ -180,6 +183,7 @@ match token {
 }
 ```
 
+> [!NOTE]
 > JWTs can be decoded by anyone, so should not include any secret data. The signature on the JWT only ensures that a trusted source has created it, and it has not been tampered with (e.g. no one has changed the user ID or expiration date).
 
 However, we now have a new problem - how are we meant to invalidate a session when JWTs are stateless?
@@ -268,6 +272,7 @@ Finally, invalidation is as simple as updating the user's session version:
 user.session_version += 1;
 ```
 
+> [!NOTE]
 > Refresh tokens do have a drawback - after invalidating the sessions, it may take up to 5 minutes (or the whatever lifespan of the access token is) for the user to be logged out.
 
 
@@ -284,6 +289,7 @@ fetch("http://localhost:8080/endpoint", {
 });
 ```
 
+> [!NOTE]
 > There are several other settings you'll probably want to configure for better cookie security. For example `Secure` only allows sending the cookie over HTTPS and `SameSite=Lax` only allows sending the cookie to the site it originated from. For more information, have a read of [MDN Set-Cookie docs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) as well as the [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
 Using HTTP-only cookies, the client now no longer knows who it is logged in as - it cannot read the JWT. The way to solve this is to have an endpoint on the server for fetching the user information. Since the server can read the JWT, it will know the ID of the user that made the request, and then can return relevant information.

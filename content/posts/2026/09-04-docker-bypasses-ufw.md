@@ -107,6 +107,7 @@ Save the file and reload UFW to apply the changes with:
 sudo ufw reload
 ```
 
+> [!NOTE]
 > This is a bit of a nuclear option - it blocks *all* external traffic routed to Docker containers. If you have public-facing services running inside Docker (like an Nginx reverse proxy or your actual web app), this will break them. This fix is only suitable if Docker is strictly for internal backend services.
 
 Now Docker won't expose anything to the public, so UFW has full control over what traffic is allowed in. A quick Nmap scan confirms the fix:
