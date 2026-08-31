@@ -1,5 +1,5 @@
 ---
-title: "Stop Making Slow Web Apps: How I achieved a 0.2s LCP  ⃰"
+title: "[SCRAPPED] Stop Making Slow Web Apps: How I achieved a 0.2s LCP  ⃰"
 date: 2026-04-12
 slug: /stop-making-slow-web-apps/
 description: We're spoiled by fast hardware and bloated JS bundles. Here's why the 2.5s LCP metric is a joke, and how I built a blazingly fast SPA without relying on expensive serverless magic
