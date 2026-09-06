@@ -9,7 +9,7 @@
     "dev:hugo": "hugo server --buildDrafts",
     "dev": "run-p dev:generate dev:hugo",
     "build:pagefind": "npx -y pagefind --site public",
-    "build:generate": "npx tailwindcss -i ./assets/input.css -o ./themes/pehtheme-simple-hugo/static/assets/css/main.css --minify",
+    "build:generate": "npx tailwindcss -i ./assets/input.css -o ./themes/pehtheme-simple-hugo/assets/css/main.css --minify",
     "build:hugo": "hugo",
     "build": "run-p build:*"
   },
