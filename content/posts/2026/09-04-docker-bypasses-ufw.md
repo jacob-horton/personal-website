@@ -10,7 +10,6 @@ categories:
   - coding
   - docker
 tags:
-  - feature
   - coding
   - docker
   - ufw

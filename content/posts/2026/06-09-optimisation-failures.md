@@ -10,6 +10,7 @@ categories:
   - coding
   - performance
 tags:
+  - feature
   - performance
   - web-app
   - spa
